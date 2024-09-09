@@ -4,14 +4,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi.responses import StreamingResponse
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from groq_api import get_answer, get_relevant_questions
 from sources_searcher import get_sources
 from build_context import build_context
 from sources_manipulation import populate_sources
-
-
+from fastapi.security import APIKeyHeader
+import os 
 app = FastAPI()
 
 # allow_origins=["https://openperplex.com"]
@@ -25,6 +25,18 @@ app.add_middleware(
 
 load_dotenv()
 
+API_KEY = os.getenv("SECURITY_SECRET")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def get_api_key(api_key_header: str = Security(api_key_header)) -> str:
+    if api_key_header in [API_KEY]:
+        return api_key_header
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing API Key",
+    )
+
 
 @app.get("/")
 def root():
@@ -32,14 +44,14 @@ def root():
 
 
 @app.get("/up_test")
-def up_test():
+def up_test(api_key: str = Security(get_api_key)):
     # test for kamal deploy
     return {"status": "ok"}
 
 
 # you can change to post if typical your query is too long
 @app.get("/search")
-def ask(query: str,stored_location: str="us", pro_mode: bool = False):
+def ask(query: str,stored_location: str="us", pro_mode: bool = False, api_key: str = Security(get_api_key)):
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
