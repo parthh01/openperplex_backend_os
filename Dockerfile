@@ -3,12 +3,14 @@ FROM python:3.12-slim
 WORKDIR /workspace
 ENV HOME=/workspace
 
+COPY requirements.txt /workspace
+RUN pip install -r requirements.txt
+
 ADD . /workspace
 
 RUN chown -R 42420:42420 /workspace
 
-# Install dependencies using apk and then Python packages
-RUN pip install -r requirements.txt
+
 
 EXPOSE 8080
 

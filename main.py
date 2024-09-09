@@ -39,39 +39,34 @@ def up_test():
 
 # you can change to post if typical your query is too long
 @app.get("/search")
-def ask(query: str, date_context: str, stored_location: str, pro_mode: bool = False):
+def ask(query: str,stored_location: str="us", pro_mode: bool = False):
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    def generate():
-        try:
-            sources_result = get_sources(query, pro_mode, stored_location)
-            yield "data:" + json.dumps({'type': 'sources', 'data': sources_result}).decode() + "\n\n"
+    output = {}
+    try:
+        sources_result = get_sources(query, pro_mode, stored_location)
+        # yield "data:" + json.dumps({'type': 'sources', 'data': sources_result}).decode() + "\n\n"
 
-            if sources_result.get('organic') is not None and pro_mode is True:
-                # set the number of websites to scrape : here = 2
-                sources_result['organic'] = populate_sources(sources_result['organic'], 2)
+        if sources_result.get('organic') is not None and pro_mode is True:
+            # set the number of websites to scrape : here = 2
+            sources_result['organic'] = populate_sources(sources_result['organic'], 2)
+        
+        output['sources'] = sources_result["organic"] # TODO : change add the non organic sources
 
-            search_contexts = build_context(sources_result, query, pro_mode, date_context)
+        search_contexts = build_context(sources_result, query, pro_mode)
+        output['llm_response'] = get_answer(query, search_contexts)
 
-            for chunk in get_answer(query, search_contexts, date_context):
-                yield "data:" + json.dumps({'type': 'llm', 'text': chunk}).decode() + "\n\n"
+        # try:
+        #     relevant_questions = get_relevant_questions(search_contexts, query)
+        #     relevant_json = json.loads(relevant_questions)
+        #     yield "data:" + json.dumps({'type': 'relevant', 'data': relevant_json}).decode() + "\n\n"
+        # except Exception as e:
+        #     print(f"error in relevant questions main.py {e}")
+        #     yield "data:" + json.dumps({'type': 'relevant', 'data': []}).decode() + "\n\n"
 
-            try:
-                relevant_questions = get_relevant_questions(search_contexts, query)
-                relevant_json = json.loads(relevant_questions)
-                yield "data:" + json.dumps({'type': 'relevant', 'data': relevant_json}).decode() + "\n\n"
-            except Exception as e:
-                print(f"error in relevant questions main.py {e}")
-                yield "data:" + json.dumps({'type': 'relevant', 'data': []}).decode() + "\n\n"
+    except Exception as e:
+        print(e)
+        return {"error": "We are currently experiencing some issues. Please try again later."}
 
-            yield "data:" + json.dumps({'type': 'finished', 'data': ""}).decode() + "\n\n"
-            yield "event: end-of-stream\ndata: null\n\n"
-
-        except Exception as e:
-            print(e)
-            yield "data:" + json.dumps(
-                {'type': 'error',
-                 'data': "We are currently experiencing some issues. Please try again later."}).decode() + "\n\n"
-
-    return StreamingResponse(generate(), media_type="text/event-stream")
+    return output

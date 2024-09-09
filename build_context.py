@@ -7,14 +7,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def build_context(sources_result, query, pro_mode, date_context):
+def build_context(sources_result, query, pro_mode):
     """
       Build context from search results.
 
       :param sources_result: Dictionary containing search results
       :param query: Search query string
       :param pro_mode: Boolean indicating whether to use pro mode (reranking)
-      :param date_context: Date context string
       :return: Built context as a string
       """
     try:
@@ -53,7 +52,7 @@ def build_context(sources_result, query, pro_mode, date_context):
 
         if pro_mode:
             # you can choose to use jina or cohere for reranking
-            final_list = get_reranking_jina(combined_list, query + date_context, 15)
+            final_list = get_reranking_jina(combined_list, query, 15)
         else:
             final_list = combined_list
 

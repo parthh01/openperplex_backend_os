@@ -1,41 +1,43 @@
 import json
 import os
-from groq import Groq
+from openai import OpenAI
 from langchain_core.prompts import PromptTemplate
 from prompts import search_prompt_system, relevant_prompt_system
+from dotenv import load_dotenv
+import os 
 
+load_dotenv()
 # use ENV variables
-MODEL = "llama3-70b-8192"
-api_key_groq = os.getenv("GROQ_API_KEY")
+MODEL = "NousResearch/Meta-Llama-3-8B-Instruct"
 
 
-client = Groq()
+OPENAI_BASE_URL = os.getenv("VLLM_API_URL")
+OPENAI_API_KEY = os.getenv("VLLM_API_KEY") 
 
+client = OpenAI(
+        api_key=OPENAI_API_KEY, 
+        base_url=OPENAI_BASE_URL,
+    )
 
-def get_answer(query, contexts, date_context):
-    system_prompt_search = PromptTemplate(input_variables=["date_today"], template=search_prompt_system)
+def get_answer(query, contexts):
+    # system_prompt_search = PromptTemplate(input_variables=["date_today"], template=search_prompt_system)
 
     messages = [
-        {"role": "system", "content": system_prompt_search.format(date_today=date_context)},
+        {"role": "system", "content": search_prompt_system},
         {"role": "user", "content": "User Question : " + query + "\n\n CONTEXTS :\n\n" + contexts}
     ]
 
     try:
-        stream = client.chat.completions.create(
+        response = client.chat.completions.create(
             model=MODEL,
             messages=messages,
-            stream=True,
             stop=None,
         )
-
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
+        return response.choices[0].message.content
 
     except Exception as e:
         print(f"Error during get_answer_groq call: {e}")
-        yield "data:" + json.dumps(
-            {'type': 'error', 'data': "We are currently experiencing some issues. Please try again later."}) + "\n\n"
+        return json.dumps({'type': 'error', 'data': "We are currently experiencing some issues. Please try again later."})
 
 
 def get_relevant_questions(contexts, query):
