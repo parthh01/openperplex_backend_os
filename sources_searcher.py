@@ -14,8 +14,9 @@ HEADERS = {
     'Content-Type': 'application/json'
 }
 
+from urllib.parse import urlparse
 
-def get_sources(query: str, pro_mode: bool = False, stored_location: Optional[str] = None) -> Dict[str, Any]:
+def get_sources(query: str, pro_mode: bool = False, stored_location: Optional[str] = None, exclude_domains: Optional[List[str]] = []) -> Dict[str, Any]:
     """
     Fetch search results from Serper API.
 
@@ -39,13 +40,16 @@ def get_sources(query: str, pro_mode: bool = False, stored_location: Optional[st
 
         data = response.json()
 
-        return {
+        output = {
             'organic': extract_fields(data.get('organic', []), ['title', 'link', 'snippet', 'date']),
             'topStories': extract_fields(data.get('topStories', []), ['title', 'imageUrl']),
             'images': extract_fields(data.get('images', [])[:6], ['title', 'imageUrl']),
             'graph': data.get('knowledgeGraph'),
             'answerBox': data.get('answerBox')
         }
+
+        output['organic'] = [item for item in output['organic'] if urlparse(item['link']).netloc not in exclude_domains]
+        return output
 
     except requests.RequestException as e:
         print(f"HTTP error while getting sources: {e}")

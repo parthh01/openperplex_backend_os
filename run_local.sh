@@ -1,0 +1,1 @@
+docker rm -f openperplex_critique_server; docker build -t openperplex_critique .; docker run -d -p 8008:8080 --name openperplex_critique_server openperplex_critique

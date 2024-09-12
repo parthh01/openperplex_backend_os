@@ -8,8 +8,7 @@ import os
 
 load_dotenv()
 # use ENV variables
-MODEL = "NousResearch/Meta-Llama-3-8B-Instruct"
-
+MODEL = os.getenv("VLLM_MODEL")
 
 OPENAI_BASE_URL = os.getenv("VLLM_API_URL")
 OPENAI_API_KEY = os.getenv("VLLM_API_KEY") 
@@ -58,3 +57,7 @@ def get_relevant_questions(contexts, query):
     except Exception as e:
         print(f"Error during RELEVANT GROQ ***************: {e}")
         return {}
+
+
+if __name__ == "__main__":
+    print(get_relevant_questions("what's going on? ", "Hello"))

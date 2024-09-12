@@ -25,7 +25,7 @@ def extract_website_content(url):
         clean_text = "".join(clean_text)
 
         # Return up to the first 4000 characters if the content is sufficiently long
-        return clean_text[:4000] if len(clean_text) > 200 else ""
+        return clean_text
 
     except Exception as error:
         print('Error extracting main content:', error)
