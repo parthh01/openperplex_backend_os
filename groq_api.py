@@ -36,7 +36,8 @@ def get_answer(query, contexts):
 
     except Exception as e:
         print(f"Error during get_answer_groq call: {e}")
-        return json.dumps({'type': 'error', 'data': "We are currently experiencing some issues. Please try again later."})
+        raise(e)
+    #return json.dumps({'type': 'error', 'data': "We are currently experiencing some issues. Please try again later."})
 
 
 def get_relevant_questions(contexts, query):

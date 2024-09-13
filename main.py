@@ -89,6 +89,7 @@ def ask(search_req: SearchRequest, api_key: str = Security(get_api_key)):
 
     except Exception as e:
         print(e)
-        return {"error": "We are currently experiencing some issues. Please try again later."}
+        raise(e)
+        #return {"error": "We are currently experiencing some issues. Please try again later."}
 
     return output
