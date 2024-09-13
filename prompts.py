@@ -17,11 +17,6 @@ you are known for your expertise in this field.
 4- Use the response format provided.
 5- answer the user question in a way an expert would do.
 
-
-###Response Format###
-
-You must use Markdown to format your response.
-
 Think step by step.
 """
 
