@@ -48,6 +48,8 @@ def get_sources(query: str, pro_mode: bool = False, stored_location: Optional[st
             'answerBox': data.get('answerBox')
         }
 
+        print('THE LINKS: ',[item['link'] for item in output['organic']])
+        print('THE EXCLUDE DOMAINS: ', exclude_domains)
         output['organic'] = [item for item in output['organic'] if urlparse(item['link']).netloc.replace('www.', '') not in exclude_domains]
         return output
 
